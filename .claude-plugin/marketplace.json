@@ -1,0 +1,16 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "unifonic-iris",
+  "description": "Unifonic's Iris plugin for Claude Code - the Mixpanel tracking plan.",
+  "owner": {
+    "name": "Unifonic Product"
+  },
+  "plugins": [
+    {
+      "name": "iris",
+      "description": "Plan Mixpanel tracking in Iris: search and reuse events and properties, draft new ones, and build journeys for review.",
+      "source": "./",
+      "category": "productivity"
+    }
+  ]
+}

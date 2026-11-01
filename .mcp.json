@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "iris": {
+      "type": "http",
+      "url": "${IRIS_URL}/api/agent/mcp",
+      "headers": {
+        "Authorization": "Bearer ${IRIS_TOKEN}"
+      }
+    }
+  }
+}
