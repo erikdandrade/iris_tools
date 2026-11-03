@@ -1,6 +1,6 @@
 {
   "name": "iris",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Plan Mixpanel tracking in Iris, Unifonic's tracking-plan tool: search and reuse events and properties, draft new ones, and build journeys (screens, triggers, events) for review.",
   "author": {
     "name": "Unifonic Product"

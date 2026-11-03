@@ -34,15 +34,21 @@ Iris is Unifonic's source of truth for the Mixpanel tracking plan. You work thro
 3. For each meaningful user action or outcome: `search_events` → reuse a fitting event, or `create_event` with a Title Case name, a plain-language `when_fired`, and `journey_id` once the journey exists.
 4. For each piece of data the event needs: `search_properties` → reuse, or `propose_property` (snake_case, a real description, `enum_values` for ENUM). Then `attach_property_to_event`.
 5. `create_journey`, then `create_journey_step` per screen, in order.
-6. **Screenshots**: ask the user for each screen as an image **file path** (they can drag the file into the terminal). Upload it by running the `upload_screenshot_with` curl command that `create_journey_step` returned, with `<path-to-image>` replaced by the path. Run it exactly as given - it carries a one-hour signed link, so don't add headers or `$IRIS_TOKEN`. If the link expired, get a fresh one with `get_screenshot_upload_command`. Never base64 a screenshot yourself; pasted images can't be uploaded - you need the file.
-7. `add_trigger` per interaction on its step, with `element_name` and `event_id`. You usually don't have Figma geometry: give a rough normalized `box` only if you can clearly see where the element is in the screenshot, otherwise leave the marker off and say a designer will place it.
+6. **Screens - Figma links first.** Ask whether the screens are in Figma. If so, ask for each screen's frame link (in Figma: right-click the frame → "Copy link to selection") and pass it as `figma_url` to `create_journey_step`, or call `import_figma_frame` for an existing step. Iris renders the frame itself - nobody needs a Figma seat. A link to the whole file (no `node-id`) won't work; ask for the frame link. If the result says Figma isn't connected, fall back to screenshots below.
+
+   **Screenshots (no Figma)**: ask the user for each screen as an image **file path** (they can drag the file into the terminal). Upload it by running the `upload_screenshot_with` curl command that `create_journey_step` returned, with `<path-to-image>` replaced by the path. Run it exactly as given - it carries a one-hour signed link, so don't add headers or `$IRIS_TOKEN`. If the link expired, get a fresh one with `get_screenshot_upload_command`. Never base64 a screenshot yourself; pasted images can't be uploaded - you need the file.
+7. `add_trigger` per interaction on its step, with `element_name` and `event_id`.
+   - **Figma-imported step**: `list_figma_layers` (use `query`, e.g. "send") and pass the matching layer's id as `figma_node_id` - Iris places the marker exactly. Pick the element itself (usually an INSTANCE such as "Button / Primary"), not its label text. If no layer clearly matches, leave the marker off and list it as an open item - the PM can click the element on the step image in Iris to place it.
+   - **Screenshot step**: give a rough normalized `box` only if you can clearly see where the element is, otherwise leave the marker off.
 8. `set_trigger_property_value` for `context`, `sub_context`, `action_type` (and any value that's fixed for that trigger).
 9. `create_journey_edge` from each trigger to the step it leads to.
-10. Report: the journey link, events/properties reused vs. new, and open items (e.g. "markers to be placed from Figma by design").
+10. Report: the journey link, events/properties reused vs. new, and open items (e.g. "no Figma layer matched 'Export CSV' - place its marker in Iris").
 
-## Workflow B - Placing triggers from Figma (Design team)
+When the designs change later, `refresh_from_figma` re-renders a journey's Figma steps; markers follow their layers, and markers whose layer was deleted are reported back - tell the user which.
 
-Use when the user gives you a journey (link or name - find it with `list_journeys`) and the Figma file for its screens.
+## Workflow B - Placing triggers from Figma by hand (fallback)
+
+Only needed when Iris has no Figma connection (`import_figma_frame` says so) and the user has Figma access themselves - otherwise use Workflow A's Figma links. Use when the user gives you a journey (link or name - find it with `list_journeys`) and the Figma file for its screens.
 
 1. `get_journey` to see its steps and triggers - often a PM drafted it already, with triggers that have no marker yet.
 2. For each step, find the matching Figma frame and get it as an image file: **the whole frame, uncropped** (any scale works - markers are stored as fractions of the image). Either export the frame from Figma, or, if `FIGMA_TOKEN` is set, use the Figma REST API (`GET https://api.figma.com/v1/images/<file_key>?ids=<frame_id>&format=png`, then download the returned URL). Upload it by calling `get_screenshot_upload_command` for the step and running the command it returns with the file path filled in.
@@ -60,6 +66,7 @@ Use when the user gives you a journey (link or name - find it with `list_journey
 | New event / property | `create_event`, `propose_property` |
 | Event ↔ property | `attach_property_to_event` |
 | Journey structure | `create_journey`, `create_journey_step`, `create_journey_edge` |
-| Screenshot | run the curl command from `create_journey_step` / `get_screenshot_upload_command` |
-| Triggers | `add_trigger`, `update_trigger`, `connect_event_to_trigger` |
+| Screen from Figma | `figma_url` on `create_journey_step`, `import_figma_frame`, `refresh_from_figma` |
+| Screenshot file | run the curl command from `create_journey_step` / `get_screenshot_upload_command` |
+| Triggers | `add_trigger`, `update_trigger` (`figma_node_id` from `list_figma_layers`), `connect_event_to_trigger` |
 | Fixed values (`context`, `action_type`...) | `set_trigger_property_value` |

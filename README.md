@@ -5,7 +5,7 @@ Lets Claude Code (and agents built on it, like **Baymax**) work with **Iris**, U
 - find which events and properties already exist (fuzzy search catches near-duplicates)
 - draft new events and properties following Unifonic's [Event Based Analytics Framework](https://unifonic.atlassian.net/wiki/spaces/UPP/pages/1985806477/Event+Based+Analytics+Framework+-+Mixpanel)
 - build journeys: screens, the triggers on them, and the events they fire
-- place triggers precisely from Figma designs (Design team)
+- import screens from Figma frame links and place triggers precisely on their layers
 
 Everything an agent creates lands in Iris as a **draft** attributed to you, for someone to review.
 
@@ -37,7 +37,7 @@ Everything an agent creates lands in Iris as a **draft** attributed to you, for 
 
 Check it works by asking: *"What events does Iris have for campaigns?"*
 
-Designers using the Figma workflow also need Figma's MCP (or a `FIGMA_TOKEN` for the Figma REST API) on a seat with Dev Mode access.
+No Figma seat needed: give the agent a Figma frame link and Iris renders the screen and places markers on its layers itself. (Only the fallback workflow, for an Iris without a Figma connection, needs Figma's MCP or a `FIGMA_TOKEN` on a Dev Mode seat.)
 
 ## For agent maintainers (e.g. Baymax)
 
@@ -70,3 +70,13 @@ The plugin's rules live in this repo, so improvements to them reach every agent 
 | Connection refused / timeout | Connect to the VPN |
 | 401 "invalid or revoked agent token" | Create a new token in Iris (Settings → Agent tokens) |
 | Screenshot won't upload | Give the agent the image as a file path; pasted images can't be uploaded. Claude Code asks before running the `curl` upload command - approve it |
+| "Figma isn't connected in Iris" | Iris's admin hasn't set `FIGMA_ACCESS_TOKEN` (or it expired). Use screenshot files meanwhile |
+| Figma import takes minutes or times out | Figma's API sometimes stalls a request for 2-4 minutes. Wait and retry; a fix (timeouts + background import) is planned in Iris |
+| Tool not found: `import_figma_frame`, `list_figma_layers`... | The Iris server is older than this plugin - see Versions below |
+
+## Versions
+
+| Plugin | Needs Iris | Changes |
+|---|---|---|
+| 0.2.0 | Figma import (Iris commit `10e8844`, 2026-11-02) with `FIGMA_ACCESS_TOKEN` set on the server | Screens come from Figma frame links (`figma_url`, `import_figma_frame`); markers go on Figma layers (`list_figma_layers` + `figma_node_id`); `refresh_from_figma`. The designer-by-hand workflow is now the fallback |
+| 0.1.0 | Agent tokens + MCP server | First release: search/draft events and properties, build journeys, upload screenshots |
