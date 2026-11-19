@@ -27,7 +27,9 @@ Iris is Unifonic's source of truth for the Mixpanel tracking plan. You work thro
 6. **Warnings mean nothing was saved.** When a write returns `warnings`, read them. Reuse the existing item if it fits; only resubmit with `force: true` when yours is genuinely different.
 7. **Always share the `url`** from tool results, and end with a summary of what you reused vs. created.
 
-## Workflow A - Drafting tracking for a feature (PMs, e.g. via Baymax)
+## Workflow - Drafting tracking for a feature
+
+This is the same workflow for anyone - a PM working from a ticket, a designer working from their own Figma file, whoever. Nothing here is gated by role; the only thing that differs is where your screens and trigger precision come from.
 
 1. **Understand the feature**: its goal/KPI, the product, and the screens involved. Ask if any of these are unclear.
 2. `list_product_lines` → pick the product (confirm with the user if ambiguous).
@@ -38,23 +40,14 @@ Iris is Unifonic's source of truth for the Mixpanel tracking plan. You work thro
 
    **Screenshots (no Figma)**: ask the user for each screen as an image **file path** (they can drag the file into the terminal). Upload it by running the `upload_screenshot_with` curl command that `create_journey_step` returned, with `<path-to-image>` replaced by the path. Run it exactly as given - it carries a one-hour signed link, so don't add headers or `$IRIS_TOKEN`. If the link expired, get a fresh one with `get_screenshot_upload_command`. Never base64 a screenshot yourself; pasted images can't be uploaded - you need the file.
 7. `add_trigger` per interaction on its step, with `element_name` and `event_id`.
-   - **Figma-imported step**: `list_figma_layers` (use `query`, e.g. "send") and pass the matching layer's id as `figma_node_id` - Iris places the marker exactly. Pick the element itself (usually an INSTANCE such as "Button / Primary"), not its label text. If no layer clearly matches, leave the marker off and list it as an open item - the PM can click the element on the step image in Iris to place it.
+   - **Default, Figma-imported step**: `list_figma_layers` (use `query`, e.g. "send") and pass the matching layer's id as `figma_node_id` - Iris places the marker exactly. Pick the element itself (usually an INSTANCE such as "Button / Primary"), not its label text. If no layer clearly matches, leave the marker off and list it as an open item - anyone can click the element on the step image in Iris to place it later.
    - **Screenshot step**: give a rough normalized `box` only if you can clearly see where the element is, otherwise leave the marker off.
+   - **If you have your own Figma access** (e.g. a Figma MCP connection): this is a precision upgrade over `list_figma_layers`, not a separate role or a fallback gated on "Iris has no Figma connection" - use it any time you have Figma access and want exact geometry. Get the frame as an image, uncropped (export it, or if `FIGMA_TOKEN` is set, `GET https://api.figma.com/v1/images/<file_key>?ids=<frame_id>&format=png` then download the returned URL); for a step with no image yet, upload it via `get_screenshot_upload_command`. For the element, get its box and the frame's box **in the same coordinate space** - `absoluteBoundingBox` for both is simplest (`GET https://api.figma.com/v1/files/<file_key>/nodes?ids=<frame_id>,<node_id>`); if you only have a position relative to the frame, pass `frame_box` as `{x: 0, y: 0, width, height}`, adding up nested layers' offsets to the frame. Pass `figma` (`file_key`, `node_id`) on `add_trigger`/`update_trigger` - existing trigger with no marker yet → `update_trigger`, new interaction → `add_trigger` (with `event_id` if known). **Never invent a `test_id`** - set it only when you know the team's real one. Check with `get_journey` that each marker's x/y lands between 0 and 1; a `warning` that a box extends outside the frame means the node/frame pair is wrong - fix it rather than leaving a clamped marker.
 8. `set_trigger_property_value` for `context`, `sub_context`, `action_type` (and any value that's fixed for that trigger).
 9. `create_journey_edge` from each trigger to the step it leads to.
 10. Report: the journey link, events/properties reused vs. new, and open items (e.g. "no Figma layer matched 'Export CSV' - place its marker in Iris").
 
 When the designs change later, `refresh_from_figma` re-renders a journey's Figma steps; markers follow their layers, and markers whose layer was deleted are reported back - tell the user which.
-
-## Workflow B - Placing triggers from Figma by hand (fallback)
-
-Only needed when Iris has no Figma connection (`import_figma_frame` says so) and the user has Figma access themselves - otherwise use Workflow A's Figma links. Use when the user gives you a journey (link or name - find it with `list_journeys`) and the Figma file for its screens.
-
-1. `get_journey` to see its steps and triggers - often a PM drafted it already, with triggers that have no marker yet.
-2. For each step, find the matching Figma frame and get it as an image file: **the whole frame, uncropped** (any scale works - markers are stored as fractions of the image). Either export the frame from Figma, or, if `FIGMA_TOKEN` is set, use the Figma REST API (`GET https://api.figma.com/v1/images/<file_key>?ids=<frame_id>&format=png`, then download the returned URL). Upload it by calling `get_screenshot_upload_command` for the step and running the command it returns with the file path filled in.
-3. For each element that fires an event, get its box and the frame's box **in the same coordinate space** - `absoluteBoundingBox` for both is simplest (REST: `GET https://api.figma.com/v1/files/<file_key>/nodes?ids=<frame_id>,<node_id>`). If you only have the element's position relative to the frame, pass `frame_box` as `{x: 0, y: 0, width, height}`. Nested layers' positions are relative to their parent - add the offsets up to the frame.
-4. Existing trigger → `update_trigger` with `figma`; new interaction → `add_trigger` with `figma` (and `event_id` if known). Always include `file_key` and `node_id`; set `element_name` to a clear name ("Send button"), not just the raw layer name. **Never invent a `test_id`** - set it only when the user gives the team's real one.
-5. Check with `get_journey`: each marker's x/y should be between 0 and 1. A `warning` that the box extends outside the frame means the node/frame pair is wrong - fix it rather than leaving a clamped marker.
 
 ## Quick reference
 

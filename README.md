@@ -1,6 +1,6 @@
 # Iris plugin for Claude Code
 
-Lets Claude Code (and agents built on it, like **Baymax**) work with **Iris**, Unifonic's source of truth for the Mixpanel tracking plan:
+Lets Claude Code - on its own, or as part of an agent like **Baymax** - work with **Iris**, Unifonic's source of truth for the Mixpanel tracking plan. PMs and designers use it the same way: there's no separate "designer mode" that only places triggers, everyone can draft the same full tracking plan.
 
 - find which events and properties already exist (fuzzy search catches near-duplicates)
 - draft new events and properties following Unifonic's [Event Based Analytics Framework](https://unifonic.atlassian.net/wiki/spaces/UPP/pages/1985806477/Event+Based+Analytics+Framework+-+Mixpanel)
@@ -33,7 +33,9 @@ Everything an agent creates lands in Iris as a **draft** attributed to you, for 
 
 Check it worked by asking: *"What events does Iris have for campaigns?"*
 
-No Figma seat needed: give the agent a Figma frame link and Iris renders the screen and places markers on its layers itself. (Only the fallback workflow, for an Iris without a Figma connection, needs Figma's MCP or a `FIGMA_TOKEN` on a Dev Mode seat.)
+If you don't maintain an agent repo like Baymax, you're done - skip the "For agent maintainers" section below, it's only about wiring the plugin into another agent's own repo.
+
+No Figma seat needed: give the agent a Figma frame link and Iris renders the screen and places markers on its layers itself. (Precise trigger placement from your own Figma access - handy for designers, but open to anyone - needs Figma's MCP or a `FIGMA_TOKEN` on a Dev Mode seat; see the skill for how.)
 
 ## For agent maintainers (e.g. Baymax)
 
@@ -74,6 +76,7 @@ The plugin's rules live in this repo, so improvements to them reach every agent 
 
 | Plugin | Needs Iris | Changes |
 |---|---|---|
+| 0.4.0 | same as 0.3.0 | Merged the old "PM" and "designer fallback" workflows into one - drafting events/properties/journeys is the same workflow for anyone; your own Figma access is a precision upgrade for trigger placement, not a separate, more limited role |
 | 0.3.0 | same as 0.2.0 | Added the `iris-setup` skill - your agent configures `IRIS_URL`/`IRIS_TOKEN` in Claude Code's own settings itself, instead of a shell profile; setup steps above reflect this |
 | 0.2.0 | Figma import (Iris commit `10e8844`, 2026-11-02) with `FIGMA_ACCESS_TOKEN` set on the server | Screens come from Figma frame links (`figma_url`, `import_figma_frame`); markers go on Figma layers (`list_figma_layers` + `figma_node_id`); `refresh_from_figma`. The designer-by-hand workflow is now the fallback |
 | 0.1.0 | Agent tokens + MCP server | First release: search/draft events and properties, build journeys, upload screenshots |
