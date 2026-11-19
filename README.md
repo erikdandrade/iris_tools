@@ -15,27 +15,23 @@ Everything an agent creates lands in Iris as a **draft** attributed to you, for 
 |---|---|
 | `.mcp.json` | Connects to Iris's MCP endpoint (`$IRIS_URL/api/agent/mcp`) with your personal token |
 | `skills/iris-tracking-plan/SKILL.md` | The rules and workflows the agent follows (search before creating, naming, `context`/`sub_context`/`action_type`, Figma placement) |
+| `skills/iris-setup/SKILL.md` | Walks your agent through connecting itself to Iris - no shell profile editing |
 | `.claude-plugin/` | Plugin and marketplace manifests |
 
 ## Setup (each PM / designer, once)
 
-1. **Get a token.** In Iris, open **Settings → Agent tokens → New token**, name it after the agent (e.g. "Baymax"), and copy the two lines it shows.
-2. **Add them to your shell profile** (`~/.zshrc` on a Mac), then open a new terminal:
-
-   ```bash
-   export IRIS_URL="https://<iris-host>"
-   export IRIS_TOKEN="iris_..."
-   ```
-
-3. **Be on the Unifonic VPN** when using it - Iris is only reachable there. (Claude Code itself works off-VPN; only the Iris tools won't connect.)
-4. **Install the plugin** - skip this if your agent's repo (e.g. Baymax) already enables it, see below. In Claude Code:
+1. **Be on the Unifonic VPN** - Iris is only reachable there. (Claude Code itself works off-VPN; only the Iris tools won't connect.)
+2. **Install the plugin** - skip this if your agent's repo (e.g. Baymax) already enables it, see below. In Claude Code:
 
    ```
    /plugin marketplace add erikdandrade/iris_tools
    /plugin install iris@unifonic-iris
    ```
 
-Check it works by asking: *"What events does Iris have for campaigns?"*
+3. **Get a token.** In Iris, open **Settings → Agent tokens → New token**, name it after the agent (e.g. "Baymax" or your own name), and copy the two lines it shows.
+4. **Tell your agent to set up Iris for you** and give it the URL and token when it asks. The `iris-setup` skill writes them into Claude Code's own settings itself, has you restart, and verifies the connection - no editor, no shell profile.
+
+Check it worked by asking: *"What events does Iris have for campaigns?"*
 
 No Figma seat needed: give the agent a Figma frame link and Iris renders the screen and places markers on its layers itself. (Only the fallback workflow, for an Iris without a Figma connection, needs Figma's MCP or a `FIGMA_TOKEN` on a Dev Mode seat.)
 
@@ -66,7 +62,7 @@ The plugin's rules live in this repo, so improvements to them reach every agent 
 
 | Symptom | Fix |
 |---|---|
-| No `iris` tools in Claude Code | `IRIS_URL` / `IRIS_TOKEN` not set in the shell Claude Code was started from - set them and restart |
+| No `iris` tools in Claude Code | `IRIS_URL` / `IRIS_TOKEN` aren't set, or Claude Code hasn't restarted since - ask your agent to run the `iris-setup` skill |
 | Connection refused / timeout | Connect to the VPN |
 | 401 "invalid or revoked agent token" | Create a new token in Iris (Settings → Agent tokens) |
 | Screenshot won't upload | Give the agent the image as a file path; pasted images can't be uploaded. Claude Code asks before running the `curl` upload command - approve it |
@@ -78,5 +74,6 @@ The plugin's rules live in this repo, so improvements to them reach every agent 
 
 | Plugin | Needs Iris | Changes |
 |---|---|---|
+| 0.3.0 | same as 0.2.0 | Added the `iris-setup` skill - your agent configures `IRIS_URL`/`IRIS_TOKEN` in Claude Code's own settings itself, instead of a shell profile; setup steps above reflect this |
 | 0.2.0 | Figma import (Iris commit `10e8844`, 2026-11-02) with `FIGMA_ACCESS_TOKEN` set on the server | Screens come from Figma frame links (`figma_url`, `import_figma_frame`); markers go on Figma layers (`list_figma_layers` + `figma_node_id`); `refresh_from_figma`. The designer-by-hand workflow is now the fallback |
 | 0.1.0 | Agent tokens + MCP server | First release: search/draft events and properties, build journeys, upload screenshots |

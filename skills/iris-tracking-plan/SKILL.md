@@ -9,7 +9,7 @@ Iris is Unifonic's source of truth for the Mixpanel tracking plan. You work thro
 
 ## If the Iris tools don't work
 
-- **No `iris` tools at all** - the plugin can't reach Iris until `IRIS_URL` and `IRIS_TOKEN` are set in the user's shell and Claude Code is restarted. Point them to this plugin's README.
+- **No `iris` tools at all** - `IRIS_URL`/`IRIS_TOKEN` aren't set or Claude Code hasn't been restarted since. Use the `iris-setup` skill to fix it - don't ask the user to edit a shell profile by hand.
 - **Connection refused / timeout** - Iris is only reachable on the Unifonic VPN. Ask the user to connect and retry.
 - **401 / "invalid or revoked agent token"** - the token was revoked or mistyped. They create a new one in Iris under Settings → Agent tokens.
 
