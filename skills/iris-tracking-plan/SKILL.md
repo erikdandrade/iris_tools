@@ -35,8 +35,11 @@ This is the same workflow for anyone - a PM working from a ticket, a designer wo
 2. **Always select a product - never skip or guess.** `list_product_lines` → pick the product. Confirm with the user if more than one could fit. If none of them actually fits the feature, stop and flag it to the user: there's no tool to create a product, so one must be added on Iris's **Products** page before you continue.
 3. For each meaningful user action or outcome: `search_events` → reuse a fitting event, or `create_event` with a Title Case name, a plain-language `when_fired`, and `journey_id` once the journey exists.
 4. For each piece of data the event needs: `search_properties` → reuse, or `propose_property` (snake_case, a real description, `enum_values` for ENUM). Then `attach_property_to_event`.
-5. `create_journey`, then `create_journey_step` per screen, in order.
+5. `create_journey`, then for each screen: `search_pages` first - reuse a fitting Page, or pass a new `page_name` to `create_journey_step` to create one (warnings mean a near-duplicate was found; resubmit `force: true` only if genuinely different). `create_journey_step` per screen, in order.
+   - **Not every step is a Page.** If an interaction opens a modal, dropdown, or menu rather than navigating to a new destination, that's an **Overlay**, not a Page - it always belongs to the Page it appears on, never a standalone thing. `search_overlays` (scoped to that page) first, then pass `overlay_name` alongside `page_name` to `create_journey_step` (or `update_journey_step` for a step that already has its page). Same warning/`force` behavior as pages.
 6. **Screens - Figma links first.** Ask whether the screens are in Figma. If so, ask for each screen's frame link (in Figma: right-click the frame → "Copy link to selection") and pass it as `figma_url` to `create_journey_step`, or call `import_figma_frame` for an existing step. Iris renders the frame itself - nobody needs a Figma seat. A link to the whole file (no `node-id`) won't work; ask for the frame link. If the result says Figma isn't connected, fall back to screenshots below.
+
+   **Screens grouped in a Figma Section**: if several of the flow's screens are grouped under one Section in Figma, ask for the section's link instead (right-click the section itself → "Copy link to selection") and call `list_figma_section_frames` once rather than asking for one frame link per screen. Use each returned `figma_url` exactly as if it had been pasted directly - only the frames inside that section, never sibling frames or sections elsewhere in the file. A nested section's own children aren't unwrapped further; ask for that nested section's link separately if needed.
 
    **Screenshots (no Figma)**: ask the user for each screen as an image **file path** (they can drag the file into the terminal). Upload it by running the `upload_screenshot_with` curl command that `create_journey_step` returned, with `<path-to-image>` replaced by the path. Run it exactly as given - it carries a one-hour signed link, so don't add headers or `$IRIS_TOKEN`. If the link expired, get a fresh one with `get_screenshot_upload_command`. Never base64 a screenshot yourself; pasted images can't be uploaded - you need the file.
 7. `add_trigger` per interaction on its step, with `element_name` and `event_id`.
@@ -56,11 +59,13 @@ When the designs change later, `refresh_from_figma` re-renders a journey's Figma
 |---|---|
 | Products | `list_product_lines` |
 | Existing events / properties | `search_events`, `search_properties` |
+| Pages / Overlays | `search_pages`, `search_overlays` (scoped to one page) |
 | Journeys | `list_journeys`, `get_journey` |
 | New event / property | `create_event`, `propose_property` |
 | Event ↔ property | `attach_property_to_event` |
-| Journey structure | `create_journey`, `create_journey_step`, `create_journey_edge` |
+| Journey structure | `create_journey`, `create_journey_step` (`page_name`/`overlay_name`), `update_journey_step`, `create_journey_edge` |
 | Screen from Figma | `figma_url` on `create_journey_step`, `import_figma_frame`, `refresh_from_figma` |
+| Screens grouped in a Figma Section | `list_figma_section_frames` |
 | Screenshot file | run the curl command from `create_journey_step` / `get_screenshot_upload_command` |
 | Triggers | `add_trigger`, `update_trigger` (`figma_node_id` from `list_figma_layers`), `connect_event_to_trigger` |
 | Fixed values (`context`, `action_type`...) | `set_trigger_property_value` |
