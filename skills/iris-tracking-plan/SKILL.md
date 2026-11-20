@@ -32,7 +32,7 @@ Iris is Unifonic's source of truth for the Mixpanel tracking plan. You work thro
 This is the same workflow for anyone - a PM working from a ticket, a designer working from their own Figma file, whoever. Nothing here is gated by role; the only thing that differs is where your screens and trigger precision come from.
 
 1. **Understand the feature**: its goal/KPI, the product, and the screens involved. Ask if any of these are unclear.
-2. `list_product_lines` → pick the product (confirm with the user if ambiguous).
+2. **Always select a product - never skip or guess.** `list_product_lines` → pick the product. Confirm with the user if more than one could fit. If none of them actually fits the feature, stop and flag it to the user: there's no tool to create a product, so one must be added on Iris's **Products** page before you continue.
 3. For each meaningful user action or outcome: `search_events` → reuse a fitting event, or `create_event` with a Title Case name, a plain-language `when_fired`, and `journey_id` once the journey exists.
 4. For each piece of data the event needs: `search_properties` → reuse, or `propose_property` (snake_case, a real description, `enum_values` for ENUM). Then `attach_property_to_event`.
 5. `create_journey`, then `create_journey_step` per screen, in order.

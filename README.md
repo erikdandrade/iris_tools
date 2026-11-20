@@ -76,6 +76,7 @@ The plugin's rules live in this repo, so improvements to them reach every agent 
 
 | Plugin | Needs Iris | Changes |
 |---|---|---|
+| 0.4.3 | same as 0.4.2 | Product selection is now mandatory, not just "pick one if listed" - if no existing product fits the feature, the agent stops and tells the user to add it on Iris's Products page rather than guessing or skipping it (there's no tool to create one) |
 | 0.4.2 | same as 0.4.1 | Added a reconciliation step to the workflow: `add_trigger` can leave a trigger with no event (expected mid-Figma-walk), but the agent must now either connect it, or call it out explicitly as an open item, before reporting - never leave one silently unresolved |
 | 0.4.1 | same as 0.4.0 | Doc fix: Iris's Figma connection now lives in Settings → Integrations (admin-managed, DB-backed), not a `FIGMA_ACCESS_TOKEN` env var - corrected the Troubleshooting row |
 | 0.4.0 | same as 0.3.0 | Merged the old "PM" and "designer fallback" workflows into one - drafting events/properties/journeys is the same workflow for anyone; your own Figma access is a precision upgrade for trigger placement, not a separate, more limited role |
