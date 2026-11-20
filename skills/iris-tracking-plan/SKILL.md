@@ -16,22 +16,23 @@ Iris is Unifonic's source of truth for the Mixpanel tracking plan. You work thro
 ## Rules (Unifonic's Event Based Analytics Framework)
 
 1. **Search before you create.** Run `search_events` before `create_event` and `search_properties` before `propose_property`, every time. Properties must come from the shared pool - propose a new one only when nothing existing fits, and say why the closest existing ones didn't.
-2. **Never reuse an event name for a different purpose.** If a similar event exists but means something else, create a distinct, clearly named one and explain the difference.
-3. **Naming.** Events are action-driven phrases in Title Case: "Account Created", "Campaign Form Submitted". Properties are snake_case: `campaign_id`, `failure_reason`.
-4. **Every event carries `context`, `sub_context` and `action_type`** - Iris attaches them automatically. Set their real values on each trigger with `set_trigger_property_value`:
+2. **Pick the property's scope deliberately, and don't propose "just in case."** `EVENT` scope for data specific to that action/moment (e.g. `plan_type` chosen on this submit); `USER` scope for an attribute of the person/account used for cohorting that persists across events (e.g. `subscription_status`, `signup_date`) - search both scopes before proposing. Only add a property a known question or segment actually needs; it's easier to add one later than to prune one nobody uses.
+3. **Never reuse an event name for a different purpose.** If a similar event exists but means something else, create a distinct, clearly named one and explain the difference.
+4. **Naming.** Events are action-driven phrases in Title Case: "Account Created", "Campaign Form Submitted". Properties are snake_case: `campaign_id`, `failure_reason`.
+5. **Every event carries `context`, `sub_context` and `action_type`** - Iris attaches them automatically. Set their real values on each trigger with `set_trigger_property_value`:
    - `context` - the distinct area of the platform or user journey (e.g. "Campaigns").
    - `sub_context` - the sub-level within it (e.g. "Campaign builder").
    - `action_type` - `user` if a person's action fires it, `system` if the platform does.
-   Keep values consistent with the same product's other journeys (check one with `get_journey`); ask the user when unsure.
-5. **Track what matters, not everything.** Tie events to the feature's goal or KPI. Prefer back-end state changes over front-end clicks ("Form Submitted" when the record is saved, not "Submit Button Clicked"). Never propose high-volume per-unit events (e.g. one per SMS sent).
-6. **Warnings mean nothing was saved.** When a write returns `warnings`, read them. Reuse the existing item if it fits; only resubmit with `force: true` when yours is genuinely different.
-7. **Always share the `url`** from tool results, and end with a summary of what you reused vs. created.
+   Keep values consistent with the same product's other journeys (check one with `get_journey`); ask the user when unsure. **If `set_trigger_property_value` fails with "property isn't attached"**, that's a known gap on some Iris instances (the three properties were never created server-side) - don't let it block the rest of the journey; skip it and name it as an explicit open item in your report instead of retrying or guessing a workaround.
+6. **Track what matters, not everything.** Tie each event to the feature's goal or metric by working backward from it: what's the first action in the flow, the last, the milestones between, and what would signal a drop-off or dead end - that drop-off signal is often the single most valuable event to capture. Prefer back-end state changes over front-end clicks ("Form Submitted" when the record is saved, not "Submit Button Clicked"). Never propose high-volume per-unit events (e.g. one per SMS sent).
+7. **Warnings mean nothing was saved.** When a write returns `warnings`, read them. Reuse the existing item if it fits; only resubmit with `force: true` when yours is genuinely different.
+8. **Always share the `url`** from tool results, and end with a summary of what you reused vs. created.
 
 ## Workflow - Drafting tracking for a feature
 
 This is the same workflow for anyone - a PM working from a ticket, a designer working from their own Figma file, whoever. Nothing here is gated by role; the only thing that differs is where your screens and trigger precision come from.
 
-1. **Understand the feature**: its goal/KPI, the product, and the screens involved. Ask if any of these are unclear.
+1. **Understand the feature**: its goal/KPI, the product, and the screens involved. Then map the flow before picking events - what's the first action, the last, the milestones between, and what would signal a drop-off or dead end (Rule 6); that's your event list. Ask if any of this is unclear.
 2. **Always select a product - never skip or guess.** `list_product_lines` → pick the product. Confirm with the user if more than one could fit. If none of them actually fits the feature, stop and flag it to the user: there's no tool to create a product, so one must be added on Iris's **Products** page before you continue.
 3. For each meaningful user action or outcome: `search_events` → reuse a fitting event, or `create_event` with a Title Case name, a plain-language `when_fired`, and `journey_id` once the journey exists.
 4. For each piece of data the event needs: `search_properties` → reuse, or `propose_property` (snake_case, a real description, `enum_values` for ENUM). Then `attach_property_to_event`.
